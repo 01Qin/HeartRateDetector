@@ -1,6 +1,6 @@
 from piotimer import Piotimer as Timer
 from ssd1306 import SSD1306_I2C
-from machine import Pin, ADC, I2C, PWM
+from machine import UART,Pin, ADC, I2C, PWM, Timer
 from fifo import Fifo
 import utime
 import array
@@ -14,7 +14,7 @@ import ujson
 adc = ADC(26)
 
 # OLED
-i2c = I2C(1, scl=Pin(15), sda=Pin(14))
+i2c = I2C(1, scl=Pin(15), sda=Pin(14), freq=400000)
 oled = SSD1306_I2C(128, 64, i2c)
 
 # LEDs
@@ -45,69 +45,30 @@ def read_adc(tid):
 
 
 ########################################
+def draw_heart(oled, x, y, size):
+    top_r = size // 2
+    bottom_point = y + size
+    bottom_r = size // 3
+
+    for i in range(-top_r, top_r + 1):
+        oled.pixel(x + top_r + i, y + int((top_r ** 2 - i ** 2) ** 0.5), 0)
+        oled.pixel(x + 2 * top_r + i, y + int((top_r ** 2 - i ** 2) ** 0.5), 0)
+
+    oled.pixel(x + size * 3 // 2, bottom_point, 0)
+
+    for i in range(-bottom_r, bottom_r + 1):
+        oled.pixel(x + size * 3 // 2 - i, bottom_point + i, 0)
+        oled.pixel(x + size * 3 // 2 - i, bottom_point + i, 0)
+
+
 def welcome_text():
     oled.fill(1)
-    i = 0
-    horizontal1 = 0
-    horizontal2 = 0
 
     for i in range(6):
-        oled.pixel(4 + horizontal1, 3, 0)
-        oled.pixel(8 + horizontal1, 3, 0)
-        oled.pixel(4 + horizontal1, 54, 0)
-        oled.pixel(8 + horizontal1, 54, 0)
-
-        oled.line(3 + horizontal1, 4, 5 + horizontal1, 4, 0)
-        oled.line(3 + horizontal1, 55, 5 + horizontal1, 55, 0)
-
-        oled.line(7 + horizontal1, 4, 9 + horizontal1, 4, 0)
-        oled.line(7 + horizontal1, 55, 9 + horizontal1, 55, 0)
-
-        oled.line(2 + horizontal1, 5, 10 + horizontal1, 5, 0)
-        oled.line(2 + horizontal1, 56, 10 + horizontal1, 56, 0)
-
-        oled.line(3 + horizontal1, 6, 9 + horizontal1, 6, 0)
-        oled.line(3 + horizontal1, 57, 9 + horizontal1, 57, 0)
-
-        oled.line(4 + horizontal1, 7, 8 + horizontal1, 7, 0)
-        oled.line(4 + horizontal1, 58, 8 + horizontal1, 58, 0)
-
-        oled.line(5 + horizontal1, 8, 7 + horizontal1, 8, 0)
-        oled.line(5 + horizontal1, 59, 7 + horizontal1, 59, 0)
-
-        oled.pixel(6 + horizontal1, 9, 0)
-        oled.pixel(6 + horizontal1, 60, 0)
-
-        horizontal1 += 23
+        draw_heart(oled, i * 23 + 2, 2, 10)
 
     for i in range(2):
-        oled.pixel(4 + horizontal2, 19, 0)
-        oled.pixel(8 + horizontal2, 19, 0)
-        oled.pixel(4 + horizontal2, 37, 0)
-        oled.pixel(8 + horizontal2, 37, 0)
-
-        oled.line(3 + horizontal2, 20, 5 + horizontal2, 20, 0)
-        oled.line(3 + horizontal2, 38, 5 + horizontal2, 38, 0)
-
-        oled.line(7 + horizontal2, 20, 9 + horizontal2, 20, 0)
-        oled.line(7 + horizontal2, 38, 9 + horizontal2, 38, 0)
-
-        oled.line(2 + horizontal2, 21, 10 + horizontal2, 21, 0)
-        oled.line(2 + horizontal2, 39, 10 + horizontal2, 39, 0)
-
-        oled.line(3 + horizontal2, 22, 9 + horizontal2, 22, 0)
-        oled.line(3 + horizontal2, 40, 9 + horizontal2, 40, 0)
-
-        oled.line(4 + horizontal2, 23, 8 + horizontal2, 23, 0)
-        oled.line(4 + horizontal2, 41, 8 + horizontal2, 41, 0)
-
-        oled.line(5 + horizontal2, 24, 7 + horizontal2, 24, 0)
-        oled.line(5 + horizontal2, 42, 7 + horizontal2, 42, 0)
-
-        oled.pixel(6 + horizontal2, 25, 0)
-        oled.pixel(6 + horizontal2, 43, 0)
-
-        horizontal2 += 115
+        draw_heart(oled, i * 60 + 30, 25, 20)
 
     oled.text("Welcome to", 26, 17, 0)
     oled.text("Group 1's", 29, 27, 0)
@@ -115,6 +76,8 @@ def welcome_text():
     oled.show()
     utime.sleep_ms(3750)
 
+
+welcome_text()
 
 #   Function to display "Start menu"   #
 
