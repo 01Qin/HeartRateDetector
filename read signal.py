@@ -113,3 +113,4 @@ def press_to_start():
         horizontal += 45
 
     oled.show()
+press_to_start()
