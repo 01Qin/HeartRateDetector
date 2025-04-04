@@ -74,4 +74,3 @@ while True:
     read_encoder()
     select_option()
     utime.sleep_ms(10)  # Small delay
-
