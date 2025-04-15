@@ -15,6 +15,7 @@ rotb = Pin(11, Pin.IN, Pin.PULL_UP)
 # Menu options
 menu_items = [
     "Mean HR (bpm) ",
+    "Mean PPI(ms)", # added but still haven't tested with pi pico
     "SDNN (ms) ",
     "RMSSD (ms) ",
     "SDSD (ms) "
@@ -60,6 +61,11 @@ def calculate_mean_hr(rr_intervals):
     else:
         return 0
 
+def calculate_mean_ppi(rr_intervals): # haven't tested it yet
+    if rr_intervals:
+        return sum(rr_intervals) / len(rr_intervals)
+    else:
+        return 0
 
 def calculate_sdnn(rr_intervals):
     if len(rr_intervals) > 1:
@@ -105,6 +111,8 @@ def select_option():
 
         if selected_option == "Mean HR (bpm)":
             result = calculate_mean_hr(rr_intervals)
+        elif selected_option == "Mean PPI (ms)": #newnewnew
+            result = calculate_mean_ppi(rr_intervals)
         elif selected_option == "SDNN (ms)":
             result = calculate_sdnn(rr_intervals)
         elif selected_option == "RMSSD (ms)":
