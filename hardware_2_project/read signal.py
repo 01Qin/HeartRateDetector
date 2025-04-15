@@ -38,13 +38,19 @@ mode = 0
 count = 0
 switch_state = 0
 
+# SSID credentials
+ssid = 'KME759_Group_1'
+password = 'KME759bql'
 
+# Kubios credentials
+
+#   Function for reading the signal
 def read_adc(tid):
     x = adc.read_u16()
     samples.put(x)
 
 
-########################################
+
 def draw_heart(oled, x, y, size):
     top_r = size // 2
     bottom_point = y + size
@@ -60,7 +66,7 @@ def draw_heart(oled, x, y, size):
         oled.pixel(x + size * 3 // 2 - i, bottom_point + i, 0)
         oled.pixel(x + size * 3 // 2 - i, bottom_point + i, 0)
 
-
+#   Function to display welcome text
 def welcome_text():
     oled.fill(1)
 
@@ -114,3 +120,12 @@ def press_to_start():
 
     oled.show()
 press_to_start()
+
+#   Functions for connecting to WLAN   #
+
+def connect():
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.connect(ssid, password)
+    ip = wlan.ifconfig()[0]
+    return
