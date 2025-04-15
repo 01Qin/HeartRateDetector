@@ -1,3 +1,4 @@
+from pip._internal import network
 
 # SSID credentials
 ssid = 'KME759_Group_1'
