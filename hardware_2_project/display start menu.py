@@ -130,7 +130,6 @@ def select_option():
 
     prev_push = current_push
 
-
 # main loop
 display_menu()
 while True:
