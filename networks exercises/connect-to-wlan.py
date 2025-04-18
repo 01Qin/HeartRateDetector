@@ -2,9 +2,9 @@ import network
 from time import sleep
 
 # Replace these values with your own
-SSID = "Xiaomi_C24F"
-PASSWORD = "kele453489."
-BROKER_IP = "192.168.31.1"
+SSID = "0000"
+PASSWORD = "0000"
+BROKER_IP = "192.168.1.254"
 
 # Function to connect to WLAN
 def connect_wlan():
