@@ -1,8 +1,8 @@
 from pip._internal import network
 
 # SSID credentials
-ssid = 'KME759_Group_1'
-password = 'KME759bql'
+ssid = '-'
+password = '-'
 
 def connect():
     wlan = network.WLAN(network.STA_IF)
