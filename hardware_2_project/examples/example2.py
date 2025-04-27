@@ -24,9 +24,9 @@ import loading
 
 # SSID Settings
 
-SSID = "KMD652_Group_2"
-PASSWORD = "Xia0/wan9"
-BROKER_IP = "192.168.2.253"
+SSID = "-"
+PASSWORD = "-"
+BROKER_IP = "-"
 
 # Kubios Settings
 
