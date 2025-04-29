@@ -12,10 +12,10 @@ import ujson
 
 # Define menu items
 menu_items = [
-    "Measure HR ",
-    "Basic HRV analysis",
-    "History",
-    "Kubios ",
+    "1.Measure HR ",
+    "2.Basic HRV analysis",
+    "3.History",
+    "4.Kubios ",
 ]
 
 # ADC-converter
@@ -31,7 +31,6 @@ led21 = PWM(Pin(21))
 led21.freq(1000)
 
 # Rotary Encoder Pins
-# Adjust these to match your wiring
 rotary_A = Pin(10, Pin.IN, Pin.PULL_UP)
 rotary_B = Pin(11, Pin.IN, Pin.PULL_UP)
 # Encoder push button (already defined)
@@ -47,6 +46,7 @@ selected_item_index = 0  # Index of the currently selected menu item
 
 # Global variable for encoder tracking
 last_rotary_A = rotary_A.value()
+
 
 # --- Encoder Interrupt Handler ---
 def encoder_handler(pin):
@@ -64,13 +64,16 @@ def encoder_handler(pin):
                 selected_item_index = (selected_item_index - 1) % len(menu_items)
     last_rotary_A = new_A
 
+
 # Attach the interrupt to rotary_A (for rising and falling edges)
 rotary_A.irq(trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING, handler=encoder_handler)
+
 
 # Function for reading ADC
 def read_adc(tid):
     x = adc.read_u16()
     samples.put(x)
+
 
 # ---------------------------------------------------------------------
 # Display Functions
@@ -129,6 +132,7 @@ def welcome_text():
     oled.show()
     utime.sleep_ms(3750)
 
+
 def display_menu(items, selected_index):
     oled.fill(0)
     for i, item in enumerate(items):
@@ -139,6 +143,7 @@ def display_menu(items, selected_index):
         else:
             oled.text(item, 5, i * 10 + 1, 1)
     oled.show()
+
 
 def press_to_start():
     oled.fill(0)
@@ -170,12 +175,14 @@ def press_to_start():
         horizontal += 45
     oled.show()
 
+
 def collect_data():
     oled.fill(0)
     oled.text("Collecting", 4, 7, 1)
     oled.text("Data...", 4, 17, 1)
     oled.text("(^_-)/", 15, 53, 1)
     oled.show()
+
 
 def send_data():
     oled.fill(0)
@@ -184,6 +191,7 @@ def send_data():
     oled.text("(>_<)", 15, 53, 1)
     oled.show()
 
+
 # ---------------------------------------------------------------------
 # Connectivity and HRV calculation functions
 # ---------------------------------------------------------------------
@@ -191,14 +199,15 @@ ssid = 'KME759_Group_1'
 password = 'KME759bql'
 broker_ip = "192.168.1.254"
 
-APIKEY = "pbZRUi49X48I56oL1Lq8y8NDjq6rPfzX3AQeNo3a"
-CLIENT_ID = "3pjgjdmamlj759te85icf0lucv"
-CLIENT_SECRET = "111fqsli1eo7mejcrlffbklvftcnfl4keoadrdv1o45vt9pndlef"
+APIKEY = "YP8FLwf7hM80gEoZ4CqEU8H3wP2u2hB9vWAzxScc"
+CLIENT_ID = "70qhb6977htoee1u3th2aqf1td"
+CLIENT_SECRET = "1skja75f2f2a3pnt9ms6091ego0jbo1i9cp1fnb3ol7pi766b943"
 
 LOGIN_URL = "https://kubioscloud.auth.eu-west-1.amazoncognito.com/login"
 TOKEN_URL = "https://kubioscloud.auth.eu-west-1.amazoncognito.com/oauth2/token"
 REDIRECT_URI = "https://analysis.kubioscloud.com/v1/portal/login"
 ANALYSIS_URL = "https://analysis.kubioscloud.com/v2/analytics/analyze"
+
 
 def connect():
     wlan = network.WLAN(network.STA_IF)
@@ -207,57 +216,71 @@ def connect():
     ip = wlan.ifconfig()[0]
     return
 
+
+def connect_mqtt():
+    mqtt_client = MQTTClient("", BROKER_IP)
+    mqtt_client.connect(clean_session=True)
+    return mqtt_client
+
+
 def meanPPI_calculator(data):
     if not data:
         return 0
-    return int(round(sum(data)/len(data), 0))
+    return int(round(sum(data) / len(data), 0))
+
 
 def meanHR_calculator(meanPPI):
     if meanPPI == 0:
         return 0
-    return int(round(60*1000/meanPPI, 0))
+    return int(round(60 * 1000 / meanPPI, 0))
+
 
 def SDNN_calculator(data, PPI):
     if len(data) < 2:
         return 0
     summary = sum((i - PPI) ** 2 for i in data)
-    return int(round((summary/(len(data)-1))**0.5, 0))
+    return int(round((summary / (len(data) - 1)) ** 0.5, 0))
+
 
 def RMSSD_calculator(data):
     if len(data) < 2:
         return 0
     summary = 0
-    for i in range(len(data)-1):
-        summary += (data[i+1] - data[i])**2
-    return int(round((summary/(len(data)-1))**0.5, 0))
+    for i in range(len(data) - 1):
+        summary += (data[i + 1] - data[i]) ** 2
+    return int(round((summary / (len(data) - 1)) ** 0.5, 0))
+
 
 def SDSD_calculator(data):
     if len(data) < 2:
         return 0
     PP_array = array.array('l')
-    for i in range(len(data)-1):
-        PP_array.append(int(data[i+1])-int(data[i]))
+    for i in range(len(data) - 1):
+        PP_array.append(int(data[i + 1]) - int(data[i]))
     if len(PP_array) < 2:
-         return 0
-    first_value = sum(float(val**2) for val in PP_array)
+        return 0
+    first_value = sum(float(val ** 2) for val in PP_array)
     second_value = sum(float(val) for val in PP_array)
-    first = first_value/len(PP_array)
-    second = (second_value/len(PP_array))**2
+    first = first_value / len(PP_array)
+    second = (second_value / len(PP_array)) ** 2
     inside_sqrt = first - second
     if inside_sqrt < 0:
         print("Warning: Negative value inside square root for SDSD calculation. Returning 0.")
         return 0
-    return int(round((inside_sqrt)**0.5, 0))
+    return int(round((inside_sqrt) ** 0.5, 0))
+
 
 def SD1_calculator(SDSD):
-    return int(round(((SDSD**2)/2)**0.5, 0))
+    return int(round(((SDSD ** 2) / 2) ** 0.5, 0))
+
 
 def SD2_calculator(SDNN, SDSD):
-    inside_sqrt = (2*(SDNN**2)) - ((SDSD**2)/2)
+    inside_sqrt = (2 * (SDNN ** 2)) - ((SDSD ** 2) / 2)
     if inside_sqrt < 0:
-         print("Warning: Negative value inside square root for SD2 calculation. Returning 0.")
-         return 0
-    return int(round((inside_sqrt)**0.5, 0))
+        print("Warning: Negative value inside square root for SD2 calculation. Returning 0.")
+        return 0
+    return int(round((inside_sqrt) ** 0.5, 0))
+
 
 # ---------------------------------------------------------------------
 # Main Program Loop
@@ -333,12 +356,13 @@ while True:
                     oled.fill_rect(0, 0, 128, 9, 1)
                     oled.fill_rect(0, 55, 128, 64, 1)
                     if len(PPI_array) > 0:
-                        oled.text(f'Last PPI:{interval_ms}', 60, 1, 0)
+                        oled.text(f'PPI:{interval_ms}', 60, 1, 0)
                         if len(PPI_array) > 3:
                             current_mean_ppi = meanPPI_calculator(PPI_array[-5:])
                             current_mean_hr = meanHR_calculator(current_mean_ppi)
+                            print(f'Mean HR is {current_mean_hr}bpm.')
                             oled.text(f'HR:{current_mean_hr}', 2, 1, 0)
-                    oled.text(f'Timer: {int(capture_count/samplerate)}s', 18, 56, 0)
+                    oled.text(f'Timer: {int(capture_count / samplerate)}s', 18, 56, 0)
                     oled.line(x2, 10, x2, 53, 0)
                     oled.line(x1, y1, x2, y2, 1)
                     oled.show()
@@ -398,6 +422,9 @@ while True:
         # HRV Calculation and Display
         oled.fill(0)
         if len(PPI_array) >= 3:
+            global last_ppi_array
+            last_ppi_array = list(PPI_array)
+
             mean_PPI = meanPPI_calculator(PPI_array)
             mean_HR = meanHR_calculator(mean_PPI)
             SDNN = SDNN_calculator(PPI_array, mean_PPI)
@@ -405,6 +432,7 @@ while True:
             SDSD = SDSD_calculator(PPI_array)
             SD1 = SD1_calculator(SDSD)
             SD2 = SD2_calculator(SDNN, SDSD)
+
             oled.text('Basic HRV Analysis:', 0, 0, 1)
             oled.text('MeanPPI:' + str(mean_PPI) + 'ms', 0, 10, 1)
             oled.text('MeanHR:' + str(mean_HR) + 'bpm', 0, 20, 1)
@@ -413,15 +441,47 @@ while True:
             oled.text('SD1:' + str(SD1) + ' SD2:' + str(SD2), 0, 50, 1)
 
             try:
-                 connect()  # Connect to WLAN
-                 response = requests.post("YOUR_KUBIOS_API_URL", data=ujson.dumps({}))  # Replace with your post data
-                 # Process Kubios results here
-                 # Placeholder (replace PNS, SNS with real values from response):
-                 PNS = 0
-                 SNS = 0
-                 oled.text('PNS:' + str(PNS), 0, 45, 1)
-                 oled.text('SNS:' + str(SNS), 0, 54, 1)
-                 oled.text('Kubios data sent', 0, 55, 1)
+                connect()  # Connect to WLAN
+                response = requests.post(
+                    url=TOKEN_URL,
+                    data='grant_type=client_credentials&client_id={}'.format(CLIENT_ID),
+                    headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                    auth=(CLIENT_ID, CLIENT_SECRET)
+                )
+
+                intervals = [PPI_array]
+
+                # Create the dataset dictionary
+                dataset = {
+                    "type": "RRI",
+                    "data": intervals,
+                    "analysis": {"type": "readiness"}
+                }
+
+                # Make the readiness analysis with the given data
+                token_response = requests.post(
+                    url="https://analysis.kubioscloud.com/v2/analytics/analyze",
+                    headers={
+                        "Authorization": "Bearer {}".format(TOKEN_URL),
+                        # use access token toaccess your Kubios Cloud analysis session
+                        "X-Api-Key": APIKEY},
+                    json=dataset)
+
+                response = response.json()
+
+                oled.text('Kubios Results:', 0, 55, 1)  # Indicate start of Kubios results
+                oled.show()
+                # Process Kubios results here
+                if 'analysis' in response and 'sns_index' in response_json['analysis'] and 'pns_index' in \
+                        analysis_response_json['analysis']:
+                    SNS = round(response_json['analysis']['sns_index'], 2)
+                    PNS = round(analysis_response_json['analysis']['pns_index'], 2)
+                    # Display the actual values
+                    oled.text('PNS:' + str(PNS), 0, 45, 1)  # Adjust y-coordinate if needed to not overlap Basic HRV
+                    oled.text('SNS:' + str(SNS), 60, 45, 1)  # Display SNS next to PNS
+                else:
+                    oled.text('Kubios: No results', 0, 45, 1)
+
             except Exception as e:
                 oled.text('WLAN Error', 0, 55, 1)
                 print("WLAN or Kubios Error:", e)
@@ -452,11 +512,8 @@ while True:
             utime.sleep(0.01)
 
     elif mode == 2:
-        # --- Basic HRV Analysis Mode (Placeholder) ---
-        collect_data()
-        time.sleep(3)
-        send_data()
-        time.sleep(3)
+        # --- Basic HRV Analysis Mode ---
+
         oled.fill(0)
         oled.text("Basic HRV Analysis", 5, 5, 1)
         oled.text("Results o_0", 5, 20, 1)
@@ -480,12 +537,30 @@ while True:
             utime.sleep(0.01)
 
     elif mode == 3:
-        # --- History Mode (Placeholder) ---
+        # --- History Mode ---
         oled.fill(0)
         oled.text("History", 5, 5, 1)
-        oled.text("Display history", 5, 20, 1)
-        oled.text("^0^", 5, 30, 1)
+        json_object = None
+
+        try:
+            # Opening JSON file
+            with open('sample.json', 'r') as openfile:
+                # Reading from json file
+                json_object = json.load(openfile)
+
+            if json_object and "type" in json_object and "data" in json_object:
+                data_type = json_object["type"]
+                data_count = len(json_object["data"]) if isinstance(json_object["data"], list) else 0
+                oled.text(f'type: {data_type}', 5, 20, 1)
+                oled.text(f"Count: {data_count}", 5, 40, 1)
+
+                if "analysis" in json_object and "readiness" in json_object["analysis"]:
+                    analysis_results = json_object["analysis"].get("readiness", {})
+
+                    if 'readiness_score' in analysis_results:
+                        oled.text(f"Readiness: {analysis_results['readiness_score']}", 5, 50, 1)
         oled.show()
+
         count = 0
         switch_state = rot_push.value()
         while mode == 3:
@@ -505,11 +580,9 @@ while True:
             utime.sleep(0.01)
 
     elif mode == 4:
-        # --- Kubios Mode (Placeholder) ---
+        # --- Kubios Mode ---
         oled.fill(0)
         oled.text("Kubios Analysis", 5, 5, 1)
-        oled.text("Integrate Kubios", 5, 20, 1)
-        oled.text("API calls here", 5, 30, 1)
         oled.show()
         count = 0
         switch_state = rot_push.value()
@@ -528,3 +601,4 @@ while True:
             else:
                 count = 0
             utime.sleep(0.01)
+
