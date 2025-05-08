@@ -9,6 +9,7 @@ import network
 import socket
 import urequests as requests
 import ujson
+import mqtt
 
 # Define menu items
 menu_items = [
@@ -218,7 +219,7 @@ def connect():
 
 
 def connect_mqtt():
-    mqtt_client = MQTTClient("", BROKER_IP)
+    mqtt_client = MQTTClient("", broker_ip)
     mqtt_client.connect(clean_session=True)
     return mqtt_client
 
