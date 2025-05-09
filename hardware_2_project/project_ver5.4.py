@@ -12,7 +12,6 @@ import ujson
 import os
 import MQTTClient
 
-
 # Define menu items
 menu_items = [
     "1.Measure HR ",
