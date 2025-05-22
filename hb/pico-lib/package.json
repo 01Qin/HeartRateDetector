@@ -1,0 +1,13 @@
+{
+  "urls": [
+    ["filefifo.py", "http://localhost:8000/filefifo.py"],	
+    ["fifo.py", "http://localhost:8000/fifo.py"],
+    ["led.py", "http://localhost:8000/led.py"],
+    ["piotimer.py", "http://localhost:8000/piotimer.py"],
+    ["ssd1306.mpy", "http://localhost:8000/ssd1306.mpy"],
+    ["umqtt/simple.mpy", "http://localhost:8000/umqtt/simple.mpy"]
+  ],
+  "deps": [
+  ],
+  "version": "0.1"
+}
